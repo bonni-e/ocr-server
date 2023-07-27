@@ -1,0 +1,23 @@
+#list-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin: auto;
+}
+
+.list-item {
+    padding: 20px;
+}
+
+.list-item:hover {
+    background-color: whitesmoke;
+}
+
+textarea {
+    width: 200px;
+    height: 110px;
+    resize: none;
+}
+
+input[type='datetime'] {
+    width: 208px;
+}

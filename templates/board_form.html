@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+{% include 'header.html' %}
+<body>
+    <section>
+        <h2>Upload Image</h2>
+        <form method="POST" action="boards/" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="text" name="title" placeholder="title"><br>
+            <input type="text" name="content" placeholder="content"><br>
+            <input type="text" name="author" value="{{ username }}" readonly><br>
+            <input type="file" id="file" name="file">
+            <!-- <input type="file" id="file" name="file" accept="image/jpg, image/jpeg, image/png, image/gif"> -->
+            <input type="submit">
+        </form>
+    </section>
+</body>
+{% include 'footer.html' %}
+</html>
