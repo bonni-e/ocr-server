@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
     'boards.apps.BoardsConfig',
+    'ocr.apps.OcrConfig',
     'rest_framework',
 ]
 
@@ -167,3 +168,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 UC_PUBLIC_KEY = '****'
 UC_SECRET_KEY = '****'
+
+FILE_SIZE_LIMIT = 104857600

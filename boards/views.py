@@ -1,6 +1,4 @@
-import asyncio
-from time import sleep
-from io import BufferedReader
+import pytesseract
 from django.conf import settings
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
@@ -10,7 +8,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.status import HTTP_204_NO_CONTENT
 from pyuploadcare import Uploadcare
 from .models import Board
@@ -44,27 +42,27 @@ class Boards(APIView) :
         serializer = BoardSerializer(data=request.data)
 
         if serializer.is_valid() :
-            board = serializer.save()
+            board = serializer.save()   
+
             if "file" in request.FILES :
                 board.loadedfile = request.FILES["file"]
+                board.save()   
+
                 uploadcare = Uploadcare(public_key=settings.UC_PUBLIC_KEY, secret_key=settings.UC_SECRET_KEY)
                 
-                try :
-                    # sleep(2)
+                # 1. multipart upload 100M 초과 
+                # with open(board.loadedfile.path, 'rb') as file_object:
+                #     ucare_file = uploadcare.multipart_upload(file_object)
 
-                    # 1. multipart upload 100M 초과 
-                    # with open(board.loadedfile.path, 'rb') as file_object:
-                    #     ucare_file = uploadcare.multipart_upload(file_object)
-
-                    # 2. direct upload 100M 이하 
-                    # with open(board.loadedfile.path, 'rb') as file_object:
-                    #     ucare_file = uploadcare.upload(file_object)
+                # 2. direct upload 100M 이하 
+                print("board.loadedfile.size : ", board.loadedfile.size)
+                if board.loadedfile.size < settings.FILE_SIZE_LIMIT :
+                    with open(board.loadedfile.path, 'rb') as file_object:
+                        ucare_file = uploadcare.upload(file_object)
                     
-                    response = asyncio.run(self.upload(board.loadedfile.path)) 
-                    # iamge_path = f"https://ucarecdn.com/{response.uuid}/"
-                    # board.file_link = iamge_path
-                except FileNotFoundError :
-                    print('LOADING ... ')
+                    # response = asyncio.run(self.upload(board.loadedfile.path)) 
+                    iamge_path = f"https://ucarecdn.com/{ucare_file.uuid}/"
+                    board.file_link = iamge_path
 
             board.author = request.user
             board.save()
@@ -89,6 +87,9 @@ class BoardDetail(APIView) :
     def put(self, request, pk) :
         board = self.get_object(pk)
 
+        if not board.author == request.user :
+            raise PermissionDenied
+
         serializer = BoardSerializer(
             instance= board,
             data= request.data,
@@ -99,7 +100,7 @@ class BoardDetail(APIView) :
             serializer.save()
             return Response(serializer.data)
         else :
-            return serializer.errors
+            return Response(serializer.errors)
     
     def delete(self, request, pk) :
         board = self.get_object(pk)
